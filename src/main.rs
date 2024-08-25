@@ -19,6 +19,7 @@ fn main() -> Result<(), anyhow::Error> {
         x: (&window_size.width / 2) as f64 - radius,
         y: (&window_size.height / 2) as f64 - radius,
     };
+
     let ball = Ball::new(ball_coords, radius, "#cf5353");
 
     engine.add_game_object(ball);

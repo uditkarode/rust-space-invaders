@@ -1,4 +1,14 @@
-use minifb::{Key, ScaleMode, Window, WindowOptions};
+use std::time::{Duration, Instant};
+
+use anyhow::anyhow;
+use sdl2::{
+    event::Event,
+    keyboard::Keycode,
+    pixels::Color,
+    rect::Rect,
+    render::{Canvas, Texture, TextureCreator},
+    video::Window,
+};
 
 use super::{
     constants::*,
@@ -7,8 +17,6 @@ use super::{
 };
 
 pub struct Engine {
-    window: Option<Window>,
-    buffer: Vec<u32>,
     window_size: WindowSize,
     objects: Vec<Box<dyn GameObject>>,
 }
@@ -17,8 +25,6 @@ pub struct Engine {
 impl Engine {
     pub fn new(window_size: &WindowSize) -> Result<Self, anyhow::Error> {
         Ok(Self {
-            buffer: vec![0; window_size.width * window_size.height],
-            window: None,
             window_size: window_size.clone(),
             objects: Vec::new(),
         })
@@ -113,17 +119,22 @@ impl Engine {
         });
     }
 
-    fn draw(buffer: &mut Vec<u32>, window_size: &WindowSize, object: &mut Box<dyn GameObject>) {
-        let raster_vecs = object.draw();
-
-        let common = object.common();
+    fn draw(
+        canvas: &mut Canvas<Window>,
+        window_size: &WindowSize,
+        object: &mut Box<dyn GameObject>,
+        texture_creator: &TextureCreator<sdl2::video::WindowContext>,
+    ) {
+        let common = object.common().clone();
         let coords = &common.coords;
 
+        let texture = object.draw(texture_creator);
+
         Engine::draw_at(
-            buffer,
+            canvas,
             window_size.width,
             window_size.height,
-            raster_vecs,
+            &texture,
             coords,
         );
     }
@@ -132,60 +143,73 @@ impl Engine {
 // internal utils
 impl Engine {
     fn draw_at(
-        buffer: &mut Vec<u32>,
-        buffer_width: usize,
-        buffer_height: usize,
-        raster_vecs: Vec<Vec<u32>>,
+        canvas: &mut Canvas<Window>,
+        window_width: usize,
+        window_height: usize,
+        texture: &Texture,
         coords: &XYPair,
     ) {
-        let object_width = raster_vecs.iter().map(|row| row.len()).max().unwrap_or(0);
+        // Calculate the position where the texture will be drawn.
+        let x = coords.x;
+        let y = coords.y;
 
-        for (dy, row) in raster_vecs.iter().enumerate() {
-            for dx in 0..object_width {
-                let x = (coords.x + dx as f64) as usize;
-                let y = (coords.y + dy as f64) as usize;
+        // Define the destination rectangle with the width and height of the window
+        let destination_rect = Rect::new(
+            x as i32,
+            y as i32,
+            texture.query().width as u32,
+            texture.query().height as u32,
+        );
 
-                // make sure this is not out of the buffer
-                if x < buffer_width && y < buffer_height {
-                    let index = y * buffer_width + x;
+        // Copy the texture to the canvas at the specified position
+        canvas.copy(texture, None, Some(destination_rect)).unwrap();
 
-                    let maybe_pixel = row.get(dx).cloned();
-                    if let Some(pixel) = maybe_pixel {
-                        buffer[index] = pixel;
-                    }
-                }
-            }
-        }
+        // Present the canvas
+        canvas.present();
     }
 }
 
 // main run function -- sets up the window and the game loop
 impl Engine {
     pub fn run(&mut self, window_title: &str) -> Result<(), anyhow::Error> {
-        self.window = Some(Window::new(
-            window_title,
-            self.window_size.width,
-            self.window_size.height,
-            WindowOptions {
-                scale_mode: ScaleMode::AspectRatioStretch,
-                ..WindowOptions::default()
-            },
-        )?);
+        let sdl_context = sdl2::init().map_err(|_| anyhow!("Failed to create sdl context"))?;
+        let video_subsystem = sdl_context
+            .video()
+            .map_err(|_| anyhow!("Failed to obtain video subsystem"))?;
 
-        let duration_per_frame = std::time::Duration::from_secs(1) / FPS.try_into()?;
-        self.window
-            .as_mut()
-            .unwrap()
-            .limit_update_rate(Some(duration_per_frame));
+        let window = video_subsystem
+            .window(window_title, 1280, 720)
+            .position_centered()
+            .build()?;
 
-        while self.window.as_ref().unwrap().is_open()
-            && !self.window.as_ref().unwrap().is_key_down(Key::Escape)
-        {
-            let start_time = std::time::Instant::now();
-            let keys = self.window.as_ref().unwrap().get_keys();
+        let mut event_pump = sdl_context.event_pump().unwrap();
+        let timer = sdl_context.timer().unwrap();
 
-            // clear the display buffer
-            self.buffer.iter_mut().for_each(|p| *p = 0);
+        let mut canvas = window.into_canvas().build().unwrap();
+        let texture_creator: &TextureCreator<_> = &canvas.texture_creator();
+
+        // fill the canvas with black
+        canvas.set_draw_color(Color::RGB(0, 0, 0));
+        canvas.clear();
+        canvas.present();
+
+        // game loop
+        'running: loop {
+            let frame_start = Instant::now();
+
+            // close the window if the user presses Esc
+            for event in event_pump.poll_iter() {
+                match event {
+                    Event::Quit { .. }
+                    | Event::KeyDown {
+                        keycode: Some(Keycode::Escape),
+                        ..
+                    } => break 'running,
+                    _ => {}
+                }
+            }
+
+            let keyboard_state = event_pump.keyboard_state();
 
             for object in self.objects.iter_mut() {
                 // re-calculate the velocities of the object
@@ -201,25 +225,73 @@ impl Engine {
                 Engine::update_object_info(&self.window_size, object);
 
                 // allow the object to react to pressed keys
-                object.handle_input(&keys);
+                object.handle_input(&keyboard_state);
 
                 // draw the object on the buffer at it's coords
-                Engine::draw(&mut self.buffer, &self.window_size, object);
+                Engine::draw(&mut canvas, &self.window_size, object, texture_creator);
             }
 
-            // reflect the display buffer changes
-            self.window.as_mut().unwrap().update_with_buffer(
-                &self.buffer,
-                self.window_size.width,
-                self.window_size.height,
-            )?;
+            // re-draw the new canvas
+            canvas.present();
 
-            // we've done everything we needed to this frame,
-            // so we can sleep until the next frame is needed.
-            std::thread::sleep(
-                std::time::Duration::from_secs_f64(DT).saturating_sub(start_time.elapsed()),
-            );
+            // sleep to maintain 120fps if processing finished early
+            let sleep_millis = Duration::from_secs_f64(DT)
+                .saturating_sub(frame_start.elapsed())
+                .as_millis() as u32;
+
+            if sleep_millis > 0 {
+                timer.delay(sleep_millis);
+            }
         }
+
+        // let duration_per_frame = std::time::Duration::from_secs(1) / FPS.try_into()?;
+        // self.window
+        //     .as_mut()
+        //     .unwrap()
+        //     .limit_update_rate(Some(duration_per_frame));
+
+        // while self.window.as_ref().unwrap().is_open()
+        //     && !self.window.as_ref().unwrap().is_key_down(Key::Escape)
+        // {
+        //     let start_time = std::time::Instant::now();
+        //     let keys = self.window.as_ref().unwrap().get_keys();
+
+        //     // clear the display buffer
+        //     self.buffer.iter_mut().for_each(|p| *p = 0);
+
+        //     for object in self.objects.iter_mut() {
+        //         // re-calculate the velocities of the object
+        //         Engine::calc_velocities(object);
+
+        //         // apply the velocities to the coordinates
+        //         Engine::apply_velocities(object);
+
+        //         // perform collision checks with the window
+        //         Engine::collision_checks(&self.window_size, object);
+
+        //         // update the game object's info
+        //         Engine::update_object_info(&self.window_size, object);
+
+        //         // allow the object to react to pressed keys
+        //         object.handle_input(&keys);
+
+        //         // draw the object on the buffer at it's coords
+        //         Engine::draw(&mut self.buffer, &self.window_size, object);
+        //     }
+
+        //     // reflect the display buffer changes
+        //     self.window.as_mut().unwrap().update_with_buffer(
+        //         &self.buffer,
+        //         self.window_size.width,
+        //         self.window_size.height,
+        //     )?;
+
+        //     // we've done everything we needed to this frame,
+        //     // so we can sleep until the next frame is needed.
+        //     std::thread::sleep(
+        //         std::time::Duration::from_secs_f64(DT).saturating_sub(start_time.elapsed()),
+        //     );
+        // }
 
         Ok(())
     }

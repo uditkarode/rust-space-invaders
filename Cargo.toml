@@ -5,7 +5,8 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.75"
-minifb = "0.25.0"
+legion = "0.4.0"
+sdl2 = "0.37.0"
 
 [profile.release]
 opt-level = 3

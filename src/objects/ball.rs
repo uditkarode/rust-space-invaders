@@ -1,4 +1,9 @@
-use minifb::Key;
+use sdl2::{
+    keyboard::{KeyboardState, Scancode},
+    pixels::PixelFormatEnum,
+    render::{Texture, TextureCreator},
+    video::WindowContext,
+};
 
 use crate::engine::{
     game_object::{CollisionShape, GameObject, GameObjectCommon},
@@ -53,35 +58,51 @@ impl GameObject for Ball {
         &mut self.common
     }
 
-    fn draw(&self) -> Vec<Vec<u32>> {
-        let mut raster = vec![vec![0; self.diameter as usize]; self.diameter as usize];
-        let h = self.radius;
-        let k = self.radius;
+    fn draw<'a>(&'a self, texture_creator: &'a TextureCreator<WindowContext>) -> Texture {
+        let mut texture = texture_creator
+            .create_texture_streaming(
+                PixelFormatEnum::RGBA8888,
+                self.radius as u32 * 2,
+                self.radius as u32 * 2,
+            )
+            .unwrap();
 
-        for y in 0..self.diameter as usize {
-            for x in 0..self.diameter as usize {
-                let dx = (x as f64 - h).abs();
-                let dy = (y as f64 - k).abs();
-                if (dx * dx + dy * dy).sqrt() <= self.radius {
-                    raster[y][x] = self.color;
+        // Lock the texture to gain access to its pixel buffer
+        texture
+            .with_lock(None, |buffer: &mut [u8], pitch: usize| {
+                let h = self.radius as f64;
+                let k = self.radius as f64;
+
+                for y in 0..self.diameter as usize {
+                    for x in 0..self.diameter as usize {
+                        let dx = (x as f64 - h).abs();
+                        let dy = (y as f64 - k).abs();
+                        if (dx * dx + dy * dy).sqrt() <= self.radius {
+                            let offset = y * pitch + x * 4; // 4 bytes per pixel for RGBA8888
+                            buffer[offset] = (self.color >> 24) as u8; // Red
+                            buffer[offset + 1] = (self.color >> 16) as u8; // Green
+                            buffer[offset + 2] = (self.color >> 8) as u8; // Blue
+                            buffer[offset + 3] = self.color as u8; // Alpha
+                        }
+                    }
                 }
-            }
-        }
+            })
+            .unwrap();
 
-        raster
+        texture
     }
 
-    fn handle_input(&mut self, keys: &[Key]) {
-        if keys.contains(&Key::A) {
+    fn handle_input(&mut self, keys: &KeyboardState) {
+        if keys.is_scancode_pressed(Scancode::W) {
             self.common.velocities.x -= KB_X_BOOST;
         }
 
-        if keys.contains(&Key::D) {
+        if keys.is_scancode_pressed(Scancode::D) {
             self.common.velocities.x += KB_X_BOOST;
         }
 
         // jump if we are on the ground AND have 0 or lesser y velocity
-        if keys.contains(&Key::W) {
+        if keys.is_scancode_pressed(Scancode::W) {
             if let Some(info) = &self.common.object_info {
                 if self.common.velocities.y < 0.0
                     && self.common.coords.y + self.diameter == info.window_size.height as f64

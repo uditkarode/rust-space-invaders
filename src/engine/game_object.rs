@@ -1,4 +1,8 @@
-use minifb::Key;
+use sdl2::{
+    keyboard::KeyboardState,
+    render::{Texture, TextureCreator},
+    video::WindowContext,
+};
 
 use super::{
     constants::DEFAULT_COLLISION_DAMPING_FACTOR,
@@ -11,7 +15,7 @@ pub enum CollisionShape {
 }
 
 // game object common
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct GameObjectCommon {
     pub coords: XYPair,
     pub velocities: XYPair,
@@ -30,7 +34,7 @@ pub trait GameObject {
 
     fn collision_shape(&self) -> CollisionShape;
 
-    fn draw(&self) -> Vec<Vec<u32>>;
+    fn draw<'a>(&'a self, texture_creator: &'a TextureCreator<WindowContext>) -> Texture;
 
-    fn handle_input(&mut self, _keys: &[Key]) {}
+    fn handle_input(&mut self, _keyboard_state: &KeyboardState) {}
 }
