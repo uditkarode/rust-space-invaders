@@ -66,8 +66,8 @@ impl GameObject for Ball {
 
     fn draw(&self, d: &mut RaylibDrawHandle) {
         d.draw_circle(
-            self.common.coords.x as i32,
-            self.common.coords.y as i32,
+            self.common.coords.x as i32 + self.radius as i32,
+            self.common.coords.y as i32 + self.radius as i32,
             self.radius as f32,
             self.color,
         );
