@@ -1,4 +1,6 @@
-use raylib::color::Color;
+use raylib::{color::Color, prelude::RaylibTextureMode, RaylibHandle};
+
+pub type TextureDrawer<'a, 'b> = RaylibTextureMode<'a, &'b mut RaylibHandle>;
 
 pub fn hex_to_color(hex: &str) -> Color {
     let hex = hex.trim_start_matches('#');

@@ -1,18 +1,13 @@
 use std::collections::HashMap;
 
-use raylib::{
-    color::Color,
-    ffi::KeyboardKey,
-    prelude::{RaylibDraw, RaylibTextureMode},
-    RaylibHandle,
-};
+use raylib::{color::Color, ffi::KeyboardKey, prelude::RaylibDraw};
 
 use crate::{
     engine::{
         game_object::{CollisionShape, GameObject, GameObjectCommon},
         types::XYPair,
     },
-    utils,
+    utils::{self, generic::TextureDrawer},
 };
 
 const KB_X_BOOST: f32 = 0.2;
@@ -72,7 +67,7 @@ impl GameObject for Ball {
         &mut self.common
     }
 
-    fn draw(&self, d: &mut RaylibTextureMode<'_, &mut RaylibHandle>) {
+    fn draw(&self, d: &mut TextureDrawer) {
         d.draw_circle(
             self.radius as i32,
             self.radius as i32,
