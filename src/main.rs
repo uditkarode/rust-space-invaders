@@ -17,8 +17,8 @@ fn main() -> Result<(), anyhow::Error> {
 
     let radius = 24.0;
     let ball_coords = XYPair {
-        x: (&window_size.width / 2) as f64 - radius,
-        y: (&window_size.height / 2) as f64 - radius,
+        x: (&window_size.width / 2) as f32 - radius,
+        y: (&window_size.height / 2) as f32 - radius,
     };
 
     let ball = Ball::new(ball_coords, radius, "#cf5353");

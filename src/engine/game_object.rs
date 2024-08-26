@@ -9,7 +9,7 @@ use super::{
 
 // collision shape
 pub enum CollisionShape {
-    Circle(f64),
+    Circle(f32),
 }
 
 // game object common
@@ -25,9 +25,9 @@ pub struct GameObjectCommon {
 pub trait GameObject {
     fn common(&mut self) -> &mut GameObjectCommon;
 
-    fn weight_factor(&self) -> f64;
+    fn weight_factor(&self) -> f32;
 
-    fn bounciness(&self) -> f64 {
+    fn bounciness(&self) -> f32 {
         DEFAULT_COLLISION_DAMPING_FACTOR
     }
 

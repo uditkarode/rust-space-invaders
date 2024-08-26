@@ -61,7 +61,7 @@ impl Engine {
                 let mut velocities = object.common().velocities.clone();
                 let diameter = 2.0 * radius;
 
-                let on_ground = if coords.y + diameter >= window_size.height as f64 {
+                let on_ground = if coords.y + diameter >= window_size.height as f32 {
                     true
                 } else {
                     false
@@ -84,8 +84,8 @@ impl Engine {
                     coords.x = 0.0;
                     on_x_collision(&mut velocities);
                 }
-                if coords.x + diameter > window_size.width as f64 {
-                    coords.x = window_size.width as f64 - diameter;
+                if coords.x + diameter > window_size.width as f32 {
+                    coords.x = window_size.width as f32 - diameter;
                     on_x_collision(&mut velocities);
                 }
 
@@ -94,8 +94,8 @@ impl Engine {
                     coords.y = diameter;
                     on_y_collision(&mut velocities);
                 }
-                if coords.y + diameter > window_size.height as f64 {
-                    coords.y = window_size.height as f64 - diameter;
+                if coords.y + diameter > window_size.height as f32 {
+                    coords.y = window_size.height as f32 - diameter;
                     on_y_collision(&mut velocities);
                 }
 

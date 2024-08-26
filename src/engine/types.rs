@@ -6,8 +6,8 @@ pub struct WindowSize {
 
 #[derive(Clone, Default)]
 pub struct XYPair {
-    pub x: f64,
-    pub y: f64,
+    pub x: f32,
+    pub y: f32,
 }
 
 #[derive(Clone)]

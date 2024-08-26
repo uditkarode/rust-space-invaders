@@ -14,19 +14,19 @@ use crate::{
     utils,
 };
 
-const KB_X_BOOST: f64 = 0.2;
-const KB_Y_BOOST: f64 = 16.0;
+const KB_X_BOOST: f32 = 0.2;
+const KB_Y_BOOST: f32 = 16.0;
 
 pub struct Ball {
-    radius: f64,
-    diameter: f64,
+    radius: f32,
+    diameter: f32,
     color: Color,
 
     common: GameObjectCommon,
 }
 
 impl Ball {
-    pub fn new(coords: XYPair, radius: f64, color_hex: &str) -> Self {
+    pub fn new(coords: XYPair, radius: f32, color_hex: &str) -> Self {
         let diameter = radius * 2.0;
         let color = utils::generic::hex_to_color(color_hex);
         let interested_keys = vec![KeyboardKey::KEY_A, KeyboardKey::KEY_D, KeyboardKey::KEY_W];
@@ -48,11 +48,11 @@ impl Ball {
 }
 
 impl GameObject for Ball {
-    fn weight_factor(&self) -> f64 {
+    fn weight_factor(&self) -> f32 {
         0.8
     }
 
-    fn bounciness(&self) -> f64 {
+    fn bounciness(&self) -> f32 {
         0.6
     }
 
@@ -86,7 +86,7 @@ impl GameObject for Ball {
         if let Some(true) = keys.get(&KeyboardKey::KEY_W) {
             if let Some(info) = &self.common.object_info {
                 if self.common.velocities.y < 0.0
-                    && self.common.coords.y + self.diameter == info.window_size.height as f64
+                    && self.common.coords.y + self.diameter == info.window_size.height as f32
                 {
                     self.common.velocities.y -= KB_Y_BOOST;
                 }
