@@ -3,7 +3,8 @@ use std::collections::HashMap;
 use raylib::{
     color::Color,
     ffi::KeyboardKey,
-    prelude::{RaylibDraw, RaylibDrawHandle},
+    prelude::{RaylibDraw, RaylibTextureMode},
+    RaylibHandle,
 };
 
 use crate::{
@@ -48,6 +49,13 @@ impl Ball {
 }
 
 impl GameObject for Ball {
+    fn canvas_size(&self) -> XYPair {
+        XYPair {
+            x: self.diameter,
+            y: self.diameter,
+        }
+    }
+
     fn weight_factor(&self) -> f32 {
         0.8
     }
@@ -64,11 +72,11 @@ impl GameObject for Ball {
         &mut self.common
     }
 
-    fn draw(&self, d: &mut RaylibDrawHandle) {
+    fn draw(&self, d: &mut RaylibTextureMode<'_, &mut RaylibHandle>) {
         d.draw_circle(
-            self.common.coords.x as i32 + self.radius as i32,
-            self.common.coords.y as i32 + self.radius as i32,
-            self.radius as f32,
+            self.radius as i32,
+            self.radius as i32,
+            self.radius,
             self.color,
         );
     }

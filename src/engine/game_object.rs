@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use raylib::{ffi::KeyboardKey, prelude::RaylibDrawHandle};
+use raylib::{ffi::KeyboardKey, prelude::RaylibTextureMode, RaylibHandle};
 
 use super::{
     constants::DEFAULT_COLLISION_DAMPING_FACTOR,
@@ -25,6 +25,8 @@ pub struct GameObjectCommon {
 pub trait GameObject {
     fn common(&mut self) -> &mut GameObjectCommon;
 
+    fn canvas_size(&self) -> XYPair;
+
     fn weight_factor(&self) -> f32;
 
     fn bounciness(&self) -> f32 {
@@ -33,7 +35,7 @@ pub trait GameObject {
 
     fn collision_shape(&self) -> CollisionShape;
 
-    fn draw(&self, d: &mut RaylibDrawHandle);
+    fn draw(&self, d: &mut RaylibTextureMode<'_, &mut RaylibHandle>);
 
     fn handle_input(&mut self, _key_status: HashMap<KeyboardKey, bool>) {}
 }

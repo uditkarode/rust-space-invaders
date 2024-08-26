@@ -128,11 +128,10 @@ impl Engine {
 
         rl.set_target_fps(120);
         rl.set_exit_key(Some(KeyboardKey::KEY_ESCAPE));
+        rl.set_trace_log(TraceLogLevel::LOG_NONE);
 
         // game loop
         while !rl.window_should_close() {
-            let mut d = rl.begin_drawing(&thread);
-
             for object in self.objects.iter_mut() {
                 // re-calculate the velocities of the object
                 Engine::calc_velocities(object);
@@ -149,15 +148,35 @@ impl Engine {
                 // allow the object to react to interested keys
                 let mut pressed_keys: HashMap<KeyboardKey, bool> = HashMap::new();
                 for key in object.common().interested_keys.iter() {
-                    pressed_keys.insert(*key, d.is_key_down(*key));
+                    pressed_keys.insert(*key, rl.is_key_down(*key));
                 }
                 object.handle_input(pressed_keys);
 
-                // draw the object on the buffer at it's coords
-                object.draw(&mut d);
-            }
+                // create a render texture for the object
+                let canvas_size = object.canvas_size();
+                let mut render_texture = rl
+                    .load_render_texture(&thread, canvas_size.x as u32, canvas_size.y as u32)
+                    .unwrap();
 
-            d.clear_background(Color::BLACK);
+                // draw the object to the render texture
+                {
+                    let mut rl_ref = &mut rl;
+                    let mut d = rl_ref.begin_texture_mode(&thread, &mut render_texture);
+                    object.draw(&mut d);
+                }
+
+                // draw the render texture to the screen
+                {
+                    let mut d = rl.begin_drawing(&thread);
+                    d.draw_texture(
+                        render_texture.texture(),
+                        object.common().coords.x as i32,
+                        object.common().coords.y as i32,
+                        Color::WHITE,
+                    );
+                    d.clear_background(Color::BLACK);
+                }
+            }
         }
 
         Ok(())
