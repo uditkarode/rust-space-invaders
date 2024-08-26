@@ -62,8 +62,8 @@ impl GameObject for Ball {
         let mut texture = texture_creator
             .create_texture_streaming(
                 PixelFormatEnum::RGBA8888,
-                self.radius as u32 * 2,
-                self.radius as u32 * 2,
+                self.diameter as u32,
+                self.diameter as u32,
             )
             .unwrap();
 
@@ -78,11 +78,11 @@ impl GameObject for Ball {
                         let dx = (x as f64 - h).abs();
                         let dy = (y as f64 - k).abs();
                         if (dx * dx + dy * dy).sqrt() <= self.radius {
-                            let offset = y * pitch + x * 4; // 4 bytes per pixel for RGBA8888
-                            buffer[offset] = (self.color >> 24) as u8; // Red
-                            buffer[offset + 1] = (self.color >> 16) as u8; // Green
-                            buffer[offset + 2] = (self.color >> 8) as u8; // Blue
-                            buffer[offset + 3] = self.color as u8; // Alpha
+                            let offset = y * pitch + x * 4;
+                            buffer[offset] = 255; // R
+                            buffer[offset + 1] = 0; // G
+                            buffer[offset + 2] = 0; // B
+                            buffer[offset + 3] = 255; // A
                         }
                     }
                 }

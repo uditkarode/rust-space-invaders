@@ -121,7 +121,7 @@ impl Engine {
 
     fn draw(
         canvas: &mut Canvas<Window>,
-        window_size: &WindowSize,
+        _window_size: &WindowSize,
         object: &mut Box<dyn GameObject>,
         texture_creator: &TextureCreator<sdl2::video::WindowContext>,
     ) {
@@ -130,30 +130,16 @@ impl Engine {
 
         let texture = object.draw(texture_creator);
 
-        Engine::draw_at(
-            canvas,
-            window_size.width,
-            window_size.height,
-            &texture,
-            coords,
-        );
+        Engine::draw_at(canvas, &texture, coords);
     }
 }
 
 // internal utils
 impl Engine {
-    fn draw_at(
-        canvas: &mut Canvas<Window>,
-        window_width: usize,
-        window_height: usize,
-        texture: &Texture,
-        coords: &XYPair,
-    ) {
-        // Calculate the position where the texture will be drawn.
+    fn draw_at(canvas: &mut Canvas<Window>, texture: &Texture, coords: &XYPair) {
         let x = coords.x;
         let y = coords.y;
 
-        // Define the destination rectangle with the width and height of the window
         let destination_rect = Rect::new(
             x as i32,
             y as i32,
@@ -161,10 +147,9 @@ impl Engine {
             texture.query().height as u32,
         );
 
-        // Copy the texture to the canvas at the specified position
+        // copy the texture to the canvas at the specified position
         canvas.copy(texture, None, Some(destination_rect)).unwrap();
 
-        // Present the canvas
         canvas.present();
     }
 }
@@ -188,14 +173,14 @@ impl Engine {
         let mut canvas = window.into_canvas().build().unwrap();
         let texture_creator: &TextureCreator<_> = &canvas.texture_creator();
 
-        // fill the canvas with black
-        canvas.set_draw_color(Color::RGB(0, 0, 0));
-        canvas.clear();
-        canvas.present();
-
         // game loop
         'running: loop {
             let frame_start = Instant::now();
+
+            // fill the canvas with black
+            canvas.set_draw_color(Color::RGB(0, 0, 0));
+            canvas.clear();
+            canvas.present();
 
             // close the window if the user presses Esc
             for event in event_pump.poll_iter() {
@@ -243,56 +228,6 @@ impl Engine {
                 timer.delay(sleep_millis);
             }
         }
-
-        // let duration_per_frame = std::time::Duration::from_secs(1) / FPS.try_into()?;
-        // self.window
-        //     .as_mut()
-        //     .unwrap()
-        //     .limit_update_rate(Some(duration_per_frame));
-
-        // while self.window.as_ref().unwrap().is_open()
-        //     && !self.window.as_ref().unwrap().is_key_down(Key::Escape)
-        // {
-        //     let start_time = std::time::Instant::now();
-        //     let keys = self.window.as_ref().unwrap().get_keys();
-
-        //     // clear the display buffer
-        //     self.buffer.iter_mut().for_each(|p| *p = 0);
-
-        //     for object in self.objects.iter_mut() {
-        //         // re-calculate the velocities of the object
-        //         Engine::calc_velocities(object);
-
-        //         // apply the velocities to the coordinates
-        //         Engine::apply_velocities(object);
-
-        //         // perform collision checks with the window
-        //         Engine::collision_checks(&self.window_size, object);
-
-        //         // update the game object's info
-        //         Engine::update_object_info(&self.window_size, object);
-
-        //         // allow the object to react to pressed keys
-        //         object.handle_input(&keys);
-
-        //         // draw the object on the buffer at it's coords
-        //         Engine::draw(&mut self.buffer, &self.window_size, object);
-        //     }
-
-        //     // reflect the display buffer changes
-        //     self.window.as_mut().unwrap().update_with_buffer(
-        //         &self.buffer,
-        //         self.window_size.width,
-        //         self.window_size.height,
-        //     )?;
-
-        //     // we've done everything we needed to this frame,
-        //     // so we can sleep until the next frame is needed.
-        //     std::thread::sleep(
-        //         std::time::Duration::from_secs_f64(DT).saturating_sub(start_time.elapsed()),
-        //     );
-        // }
-
         Ok(())
     }
 }

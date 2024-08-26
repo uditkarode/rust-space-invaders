@@ -9,8 +9,8 @@ mod objects;
 
 fn main() -> Result<(), anyhow::Error> {
     let window_size = WindowSize {
-        width: 800,
-        height: 600,
+        width: 1280,
+        height: 720,
     };
     let mut engine = Engine::new(&window_size)?;
 
