@@ -2,11 +2,10 @@ use engine::{
     core::Engine,
     types::{WindowSize, XYPair},
 };
-use objects::ball::Ball;
+use entities::ball::Ball;
 
 mod engine;
-mod objects;
-mod utils;
+mod entities;
 
 fn main() -> Result<(), anyhow::Error> {
     let window_size = WindowSize {

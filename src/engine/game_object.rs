@@ -2,11 +2,10 @@ use std::collections::HashMap;
 
 use raylib::ffi::KeyboardKey;
 
-use crate::utils::generic::TextureDrawer;
-
 use super::{
     constants::DEFAULT_COLLISION_DAMPING_FACTOR,
     types::{ObjectInfo, XYPair},
+    utils::generic::TextureDrawer,
 };
 
 // collision shape

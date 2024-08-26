@@ -1,13 +1,12 @@
 use std::collections::HashMap;
 
-use raylib::{color::Color, ffi::KeyboardKey, prelude::RaylibDraw};
+use raylib::prelude::*;
+use raylib::{color::Color, ffi::KeyboardKey};
 
-use crate::{
-    engine::{
-        game_object::{CollisionShape, GameObject, GameObjectCommon},
-        types::XYPair,
-    },
-    utils::{self, generic::TextureDrawer},
+use crate::engine::{
+    game_object::{CollisionShape, GameObject, GameObjectCommon},
+    types::XYPair,
+    utils::generic::{hex_to_color, TextureDrawer},
 };
 
 const KB_X_BOOST: f32 = 0.2;
@@ -24,7 +23,7 @@ pub struct Ball {
 impl Ball {
     pub fn new(coords: XYPair, radius: f32, color_hex: &str) -> Self {
         let diameter = radius * 2.0;
-        let color = utils::generic::hex_to_color(color_hex);
+        let color = hex_to_color(color_hex);
         let interested_keys = vec![KeyboardKey::KEY_A, KeyboardKey::KEY_D, KeyboardKey::KEY_W];
 
         let common = GameObjectCommon {
