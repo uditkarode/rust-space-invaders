@@ -1,14 +1,6 @@
-use std::time::{Duration, Instant};
+use std::collections::HashMap;
 
-use anyhow::anyhow;
-use sdl2::{
-    event::Event,
-    keyboard::Keycode,
-    pixels::Color,
-    rect::Rect,
-    render::{Canvas, Texture, TextureCreator},
-    video::Window,
-};
+use raylib::prelude::*;
 
 use super::{
     constants::*,
@@ -118,83 +110,28 @@ impl Engine {
             window_size: window_size.clone(),
         });
     }
-
-    fn draw(
-        canvas: &mut Canvas<Window>,
-        _window_size: &WindowSize,
-        object: &mut Box<dyn GameObject>,
-        texture_creator: &TextureCreator<sdl2::video::WindowContext>,
-    ) {
-        let common = object.common().clone();
-        let coords = &common.coords;
-
-        let texture = object.draw(texture_creator);
-
-        Engine::draw_at(canvas, &texture, coords);
-    }
 }
 
 // internal utils
-impl Engine {
-    fn draw_at(canvas: &mut Canvas<Window>, texture: &Texture, coords: &XYPair) {
-        let x = coords.x;
-        let y = coords.y;
-
-        let destination_rect = Rect::new(
-            x as i32,
-            y as i32,
-            texture.query().width as u32,
-            texture.query().height as u32,
-        );
-
-        // copy the texture to the canvas at the specified position
-        canvas.copy(texture, None, Some(destination_rect)).unwrap();
-
-        canvas.present();
-    }
-}
+impl Engine {}
 
 // main run function -- sets up the window and the game loop
 impl Engine {
     pub fn run(&mut self, window_title: &str) -> Result<(), anyhow::Error> {
-        let sdl_context = sdl2::init().map_err(|_| anyhow!("Failed to create sdl context"))?;
-        let video_subsystem = sdl_context
-            .video()
-            .map_err(|_| anyhow!("Failed to obtain video subsystem"))?;
+        let (mut rl, thread) = raylib::init()
+            .size(
+                self.window_size.width as i32,
+                self.window_size.height as i32,
+            )
+            .title(window_title)
+            .build();
 
-        let window = video_subsystem
-            .window(window_title, 1280, 720)
-            .position_centered()
-            .build()?;
-
-        let mut event_pump = sdl_context.event_pump().unwrap();
-        let timer = sdl_context.timer().unwrap();
-
-        let mut canvas = window.into_canvas().build().unwrap();
-        let texture_creator: &TextureCreator<_> = &canvas.texture_creator();
+        rl.set_target_fps(120);
+        rl.set_exit_key(Some(KeyboardKey::KEY_ESCAPE));
 
         // game loop
-        'running: loop {
-            let frame_start = Instant::now();
-
-            // fill the canvas with black
-            canvas.set_draw_color(Color::RGB(0, 0, 0));
-            canvas.clear();
-            canvas.present();
-
-            // close the window if the user presses Esc
-            for event in event_pump.poll_iter() {
-                match event {
-                    Event::Quit { .. }
-                    | Event::KeyDown {
-                        keycode: Some(Keycode::Escape),
-                        ..
-                    } => break 'running,
-                    _ => {}
-                }
-            }
-
-            let keyboard_state = event_pump.keyboard_state();
+        while !rl.window_should_close() {
+            let mut d = rl.begin_drawing(&thread);
 
             for object in self.objects.iter_mut() {
                 // re-calculate the velocities of the object
@@ -209,25 +146,20 @@ impl Engine {
                 // update the game object's info
                 Engine::update_object_info(&self.window_size, object);
 
-                // allow the object to react to pressed keys
-                object.handle_input(&keyboard_state);
+                // allow the object to react to interested keys
+                let mut pressed_keys: HashMap<KeyboardKey, bool> = HashMap::new();
+                for key in object.common().interested_keys.iter() {
+                    pressed_keys.insert(*key, d.is_key_down(*key));
+                }
+                object.handle_input(pressed_keys);
 
                 // draw the object on the buffer at it's coords
-                Engine::draw(&mut canvas, &self.window_size, object, texture_creator);
+                object.draw(&mut d);
             }
 
-            // re-draw the new canvas
-            canvas.present();
-
-            // sleep to maintain 120fps if processing finished early
-            let sleep_millis = Duration::from_secs_f64(DT)
-                .saturating_sub(frame_start.elapsed())
-                .as_millis() as u32;
-
-            if sleep_millis > 0 {
-                timer.delay(sleep_millis);
-            }
+            d.clear_background(Color::BLACK);
         }
+
         Ok(())
     }
 }

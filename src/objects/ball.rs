@@ -1,13 +1,17 @@
-use sdl2::{
-    keyboard::{KeyboardState, Scancode},
-    pixels::PixelFormatEnum,
-    render::{Texture, TextureCreator},
-    video::WindowContext,
+use std::collections::HashMap;
+
+use raylib::{
+    color::Color,
+    ffi::KeyboardKey,
+    prelude::{RaylibDraw, RaylibDrawHandle},
 };
 
-use crate::engine::{
-    game_object::{CollisionShape, GameObject, GameObjectCommon},
-    types::XYPair,
+use crate::{
+    engine::{
+        game_object::{CollisionShape, GameObject, GameObjectCommon},
+        types::XYPair,
+    },
+    utils,
 };
 
 const KB_X_BOOST: f64 = 0.2;
@@ -16,7 +20,7 @@ const KB_Y_BOOST: f64 = 16.0;
 pub struct Ball {
     radius: f64,
     diameter: f64,
-    color: u32,
+    color: Color,
 
     common: GameObjectCommon,
 }
@@ -24,10 +28,12 @@ pub struct Ball {
 impl Ball {
     pub fn new(coords: XYPair, radius: f64, color_hex: &str) -> Self {
         let diameter = radius * 2.0;
-        let color = u32::from_str_radix(&color_hex[1..], 16).unwrap_or(0xFFFFFF);
+        let color = utils::generic::hex_to_color(color_hex);
+        let interested_keys = vec![KeyboardKey::KEY_A, KeyboardKey::KEY_D, KeyboardKey::KEY_W];
 
         let common = GameObjectCommon {
             coords,
+            interested_keys,
             ..GameObjectCommon::default()
         };
 
@@ -58,51 +64,26 @@ impl GameObject for Ball {
         &mut self.common
     }
 
-    fn draw<'a>(&'a self, texture_creator: &'a TextureCreator<WindowContext>) -> Texture {
-        let mut texture = texture_creator
-            .create_texture_streaming(
-                PixelFormatEnum::RGBA8888,
-                self.diameter as u32,
-                self.diameter as u32,
-            )
-            .unwrap();
-
-        // Lock the texture to gain access to its pixel buffer
-        texture
-            .with_lock(None, |buffer: &mut [u8], pitch: usize| {
-                let h = self.radius as f64;
-                let k = self.radius as f64;
-
-                for y in 0..self.diameter as usize {
-                    for x in 0..self.diameter as usize {
-                        let dx = (x as f64 - h).abs();
-                        let dy = (y as f64 - k).abs();
-                        if (dx * dx + dy * dy).sqrt() <= self.radius {
-                            let offset = y * pitch + x * 4;
-                            buffer[offset] = 255; // R
-                            buffer[offset + 1] = 0; // G
-                            buffer[offset + 2] = 0; // B
-                            buffer[offset + 3] = 255; // A
-                        }
-                    }
-                }
-            })
-            .unwrap();
-
-        texture
+    fn draw(&self, d: &mut RaylibDrawHandle) {
+        d.draw_circle(
+            self.common.coords.x as i32,
+            self.common.coords.y as i32,
+            self.radius as f32,
+            self.color,
+        );
     }
 
-    fn handle_input(&mut self, keys: &KeyboardState) {
-        if keys.is_scancode_pressed(Scancode::W) {
+    fn handle_input(&mut self, keys: HashMap<KeyboardKey, bool>) {
+        if let Some(true) = keys.get(&KeyboardKey::KEY_A) {
             self.common.velocities.x -= KB_X_BOOST;
         }
 
-        if keys.is_scancode_pressed(Scancode::D) {
+        if let Some(true) = keys.get(&KeyboardKey::KEY_D) {
             self.common.velocities.x += KB_X_BOOST;
         }
 
         // jump if we are on the ground AND have 0 or lesser y velocity
-        if keys.is_scancode_pressed(Scancode::W) {
+        if let Some(true) = keys.get(&KeyboardKey::KEY_W) {
             if let Some(info) = &self.common.object_info {
                 if self.common.velocities.y < 0.0
                     && self.common.coords.y + self.diameter == info.window_size.height as f64

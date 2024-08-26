@@ -1,8 +1,6 @@
-use sdl2::{
-    keyboard::KeyboardState,
-    render::{Texture, TextureCreator},
-    video::WindowContext,
-};
+use std::collections::HashMap;
+
+use raylib::{ffi::KeyboardKey, prelude::RaylibDrawHandle};
 
 use super::{
     constants::DEFAULT_COLLISION_DAMPING_FACTOR,
@@ -19,6 +17,7 @@ pub enum CollisionShape {
 pub struct GameObjectCommon {
     pub coords: XYPair,
     pub velocities: XYPair,
+    pub interested_keys: Vec<KeyboardKey>,
     pub object_info: Option<ObjectInfo>,
 }
 
@@ -34,7 +33,7 @@ pub trait GameObject {
 
     fn collision_shape(&self) -> CollisionShape;
 
-    fn draw<'a>(&'a self, texture_creator: &'a TextureCreator<WindowContext>) -> Texture;
+    fn draw(&self, d: &mut RaylibDrawHandle);
 
-    fn handle_input(&mut self, _keyboard_state: &KeyboardState) {}
+    fn handle_input(&mut self, _key_status: HashMap<KeyboardKey, bool>) {}
 }

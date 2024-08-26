@@ -6,6 +6,7 @@ use objects::ball::Ball;
 
 mod engine;
 mod objects;
+mod utils;
 
 fn main() -> Result<(), anyhow::Error> {
     let window_size = WindowSize {

@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.75"
 legion = "0.4.0"
-sdl2 = "0.37.0"
+raylib = "5.0.2"
 
 [profile.release]
 opt-level = 3
