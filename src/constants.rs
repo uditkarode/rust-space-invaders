@@ -1,5 +1,3 @@
-pub const DEFAULT_COLLISION_DAMPING_FACTOR: f32 = 6.0 / 10.0;
-
 pub const GROUND_DRAG_FACTOR: f32 = 0.06;
 
 pub const AIR_RESISTANCE_FACTOR: f32 = 0.1;
