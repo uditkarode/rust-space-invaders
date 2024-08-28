@@ -1,2 +1,4 @@
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+use bevy_ecs::component::Component;
+
+#[derive(Component)]
 pub struct Weight(pub f32);

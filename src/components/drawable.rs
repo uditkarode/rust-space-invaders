@@ -1,6 +1,10 @@
-use raylib::color::Color;
+use bevy_ecs::component::Component;
+use raylib::math::Vector2;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Drawable {
-    Circle { radius: f32, color: Color },
+use crate::utils::generic::TextureDrawer;
+
+#[derive(Component)]
+pub struct Drawable {
+    pub canvas_size: Vector2,
+    pub draw: Box<dyn Fn(&mut TextureDrawer) + Send + Sync>,
 }

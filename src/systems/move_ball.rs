@@ -1,4 +1,4 @@
-use legion::*;
+use bevy_ecs::prelude::*;
 use raylib::{ffi::KeyboardKey, RaylibHandle};
 
 use crate::{
@@ -10,9 +10,9 @@ const KB_X_BOOST: f32 = 0.2;
 const KB_Y_BOOST: f32 = 32.0;
 
 pub fn move_ball(world: &mut World, window_size: &WindowSize, rl: &RaylibHandle) {
-    let mut query = <(&mut Position, &mut Velocity, &CollisionShape)>::query();
+    let mut query = world.query::<(&mut Position, &mut Velocity, &CollisionShape)>();
 
-    for (position, velocity, collision_shape) in query.iter_mut(world) {
+    for (position, mut velocity, collision_shape) in query.iter_mut(world) {
         match collision_shape {
             CollisionShape::Circle(radius) => {
                 if rl.is_key_down(KeyboardKey::KEY_A) {
