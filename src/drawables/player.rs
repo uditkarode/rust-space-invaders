@@ -13,9 +13,10 @@ const SHOOTER_HEIGHT: i32 = 20;
 const SHOOTER_WIDTH: i32 = 10;
 
 const ROTATION_SCALING_FACTOR: f32 = 6.0;
+const ROTATION_BUFFER: i32 = 8;
 
 pub fn player_canvas_size() -> Vector2 {
-    return Vector2::new(SHIP_WIDTH as f32, (SHIP_HEIGHT * 2) as f32);
+    return Vector2::new(SHIP_WIDTH as f32, (SHIP_HEIGHT + SHOOTER_HEIGHT) as f32);
 }
 
 pub fn draw_player(world: &mut World, d: &mut TextureDrawer) {
@@ -34,9 +35,9 @@ pub fn draw_player(world: &mut World, d: &mut TextureDrawer) {
     d.draw_rectangle_pro(
         Rectangle::new(
             ((SHIP_WIDTH / 2) - (SHOOTER_WIDTH / 2)) as f32, // x position
-            SHIP_HEIGHT as f32,                              // y position
+            (SHIP_HEIGHT - ROTATION_BUFFER) as f32,          // y position
             SHOOTER_WIDTH as f32,                            // width
-            (SHOOTER_HEIGHT) as f32,                         // height
+            (SHOOTER_HEIGHT + ROTATION_BUFFER) as f32,       // height
         ),
         Vector2::new(0.0, 0.0), // origin
         rotation,               // rotation
