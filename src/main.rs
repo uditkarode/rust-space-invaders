@@ -41,14 +41,17 @@ fn main() -> Result<(), anyhow::Error> {
         (
             apply_velocity::apply_velocity,
             process_collisions::process_collisions,
+            remove_oob_entities::remove_oob_entities,
         )
             .chain(),
     );
 
     // spawn player
     world.spawn((
+        components::identifiers::Player,
         components::position::Position {
-            x: window_size.width / 4.0,
+            // x: window_size.width / 4.0,
+            x: 400.0,
             y: 640.0,
         },
         components::collision_shape::CollisionShape::Rectangle(
