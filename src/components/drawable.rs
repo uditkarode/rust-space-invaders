@@ -1,10 +1,14 @@
 use bevy_ecs::component::Component;
 use raylib::math::Vector2;
 
-use crate::utils::generic::TextureDrawer;
+#[derive(Clone)]
+pub enum DrawableKind {
+    Player,
+    Enemy,
+}
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Drawable {
     pub canvas_size: Vector2,
-    pub draw: Box<dyn Fn(&mut TextureDrawer) + Send + Sync>,
+    pub kind: DrawableKind,
 }

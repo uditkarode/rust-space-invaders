@@ -1,18 +1,21 @@
-use components::{drawable::Drawable, position::Position};
+use components::{
+    drawable::{self, Drawable},
+    position::Position,
+};
+use draw::draw_drawable;
+use drawables::player::player_canvas_size;
 use raylib::prelude::*;
 use resources::window_size::WindowSize;
 use systems::*;
 
 use bevy_ecs::prelude::*;
 use raylib::ffi::{KeyboardKey, TraceLogLevel};
-use utils::generic::{hex_to_color, TextureDrawer};
-
-mod constants;
-mod utils;
 
 mod components;
+mod drawables;
 mod resources;
 mod systems;
+mod utils;
 
 fn main() -> Result<(), anyhow::Error> {
     let mut world = World::default();
@@ -36,47 +39,53 @@ fn main() -> Result<(), anyhow::Error> {
 
     schedule.add_systems(
         (
-            (apply_gravity::apply_gravity, apply_air_drag::apply_air_drag),
             apply_velocity::apply_velocity,
             process_collisions::process_collisions,
         )
             .chain(),
     );
 
-    // add our ball
+    // spawn player
     world.spawn((
         components::position::Position {
             x: window_size.width / 4.0,
-            y: 480.0,
+            y: 640.0,
         },
-        components::weight::Weight(2.0),
-        components::bounciness::Bounciness(0.6),
-        components::collision_shape::CollisionShape::Circle(20.0),
-        components::drawable::Drawable {
-            canvas_size: Vector2::new(40.0, 40.0),
-            draw: Box::new(|d: &mut TextureDrawer| {
-                d.draw_circle(20, 20, 20.0, hex_to_color("#cf5353"));
-            }),
+        components::collision_shape::CollisionShape::Rectangle(
+            player_canvas_size().x,
+            player_canvas_size().y,
+        ),
+        drawable::Drawable {
+            canvas_size: player_canvas_size(),
+            kind: drawable::DrawableKind::Player,
         },
-        components::velocity::Velocity { x: 0.0, y: 0.0 },
+        components::velocity::Velocity::default(),
     ));
 
     while !rl.window_should_close() {
-        move_ball::move_ball(&mut world, &window_size, &rl);
+        handle_input::handle_input(&mut world, &window_size, &rl);
         schedule.run(&mut world);
 
         let mut textures = Vec::new();
+        let mut drawables = Vec::new();
 
         for (drawable, position) in world.query::<(&Drawable, &Position)>().iter(&world) {
-            let cs = drawable.canvas_size;
+            drawables.push((drawable.clone(), position.clone()));
+        }
+
+        for (drawable, position) in drawables {
             let mut render_texture = rl
-                .load_render_texture(&thread, cs.x as u32, cs.y as u32)
+                .load_render_texture(
+                    &thread,
+                    drawable.canvas_size.x as u32,
+                    drawable.canvas_size.y as u32,
+                )
                 .unwrap();
 
             {
                 let mut rl_ref = &mut rl;
                 let mut d = rl_ref.begin_texture_mode(&thread, &mut render_texture);
-                (drawable.draw)(&mut d);
+                draw_drawable(&mut world, &drawable, &mut d);
             }
 
             textures.push((render_texture, position));
