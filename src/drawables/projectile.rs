@@ -14,6 +14,6 @@ pub fn draw_projectile(_world: &mut World, d: &mut TextureDrawer) {
         PROJECTILE_RADIUS as i32, // x position (centered on the canvas)
         PROJECTILE_RADIUS as i32, // y position (centered on the canvas)
         PROJECTILE_RADIUS,        // radius
-        Color::YELLOW,            // color
+        Color::ORANGE,            // color
     );
 }

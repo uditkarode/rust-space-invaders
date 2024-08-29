@@ -40,7 +40,7 @@ pub fn handle_input(world: &mut World, _window_size: &WindowSize, rl: &RaylibHan
                     y: position.y,
                 },
                 Velocity {
-                    x: velocity.x,
+                    x: velocity.x * -0.8,
                     y: -2.0,
                 },
                 Drawable {
