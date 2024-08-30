@@ -28,7 +28,7 @@ fn main() -> Result<(), anyhow::Error> {
 
     let (mut rl, thread) = raylib::init()
         .size(window_size.width as i32, window_size.height as i32)
-        .title("Bouncy Ball")
+        .title("Space Invaders")
         .build();
 
     rl.set_target_fps(120);
@@ -40,7 +40,8 @@ fn main() -> Result<(), anyhow::Error> {
     schedule.add_systems(
         (
             apply_velocity::apply_velocity,
-            process_collisions::process_collisions,
+            process_collisions::process_window_collisions,
+            handle_projectile_collisions::handle_projectile_collisions,
             remove_oob_entities::remove_oob_entities,
         )
             .chain(),

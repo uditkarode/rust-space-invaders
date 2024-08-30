@@ -3,12 +3,16 @@ use raylib::{ffi::KeyboardKey, math::Vector2, RaylibHandle};
 
 use crate::{
     components::{
+        collision_shape::CollisionShape,
         drawable::{Drawable, DrawableKind},
         identifiers::{self, Player},
         position::Position,
         velocity::Velocity,
     },
-    drawables::{player::player_canvas_size, projectile::projectile_canvas_size},
+    drawables::{
+        player::player_canvas_size,
+        projectile::{projectile_canvas_size, PROJECTILE_RADIUS},
+    },
     resources::window_size::WindowSize,
 };
 
@@ -49,6 +53,7 @@ pub fn handle_input(world: &mut World, _window_size: &WindowSize, rl: &RaylibHan
                     canvas_size: projectile_canvas_size(),
                     kind: DrawableKind::Projectile,
                 },
+                CollisionShape::Circle(PROJECTILE_RADIUS),
             ));
         }
     }

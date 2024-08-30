@@ -10,7 +10,7 @@ use crate::{
 
 const COLLISION_VELOCITY_FACTOR: f32 = 0.8;
 
-pub fn process_collisions(
+pub fn process_window_collisions(
     mut query: Query<(
         &mut Position,
         &mut Velocity,
