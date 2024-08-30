@@ -4,6 +4,7 @@ use raylib::math::Vector2;
 #[derive(Clone)]
 pub enum DrawableKind {
     Player,
+    Enemy,
     Projectile,
 }
 

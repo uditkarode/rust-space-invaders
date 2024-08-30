@@ -8,7 +8,7 @@ use crate::{
         position::Position,
         velocity::Velocity,
     },
-    drawables::player::player_canvas_size,
+    drawables::{player::player_canvas_size, projectile::projectile_canvas_size},
     resources::window_size::WindowSize,
 };
 
@@ -32,6 +32,8 @@ pub fn handle_input(world: &mut World, _window_size: &WindowSize, rl: &RaylibHan
         if let Ok((_, velocity, position)) = player_query.get_single(world) {
             let pc = player_canvas_size();
 
+            let projectile_x_velocity = (velocity.x * -1.0).clamp(-2.0, 2.0);
+
             // spawn projectile
             world.spawn((
                 identifiers::Projectile,
@@ -40,11 +42,11 @@ pub fn handle_input(world: &mut World, _window_size: &WindowSize, rl: &RaylibHan
                     y: position.y,
                 },
                 Velocity {
-                    x: velocity.x * -0.8,
-                    y: -2.0,
+                    x: projectile_x_velocity,
+                    y: -4.0,
                 },
                 Drawable {
-                    canvas_size: Vector2::new(10.0, 10.0),
+                    canvas_size: projectile_canvas_size(),
                     kind: DrawableKind::Projectile,
                 },
             ));

@@ -12,7 +12,7 @@ const SHIP_WIDTH: i32 = 80;
 const SHOOTER_HEIGHT: i32 = 20;
 const SHOOTER_WIDTH: i32 = 10;
 
-const ROTATION_SCALING_FACTOR: f32 = 6.0;
+const ROTATION_SCALING_FACTOR: f32 = 3.0;
 const ROTATION_BUFFER: i32 = 8;
 
 pub fn player_canvas_size() -> Vector2 {
@@ -39,8 +39,8 @@ pub fn draw_player(world: &mut World, d: &mut TextureDrawer) {
             SHOOTER_WIDTH as f32,                            // width
             (SHOOTER_HEIGHT + ROTATION_BUFFER) as f32,       // height
         ),
-        Vector2::new(0.0, 0.0), // origin
-        rotation,               // rotation
+        Vector2::new(0.0, 0.0),      // origin
+        rotation.clamp(-20.0, 20.0), // rotation
         Color::STEELBLUE,
     );
 }

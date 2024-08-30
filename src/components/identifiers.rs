@@ -4,4 +4,7 @@ use bevy_ecs::component::Component;
 pub struct Player;
 
 #[derive(Component)]
+pub struct Enemy;
+
+#[derive(Component)]
 pub struct Projectile;

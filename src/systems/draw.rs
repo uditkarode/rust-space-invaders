@@ -2,7 +2,7 @@ use bevy_ecs::world::World;
 
 use crate::{
     components::drawable::{Drawable, DrawableKind},
-    drawables::{player::draw_player, projectile::draw_projectile},
+    drawables::{enemy::draw_enemy, player::draw_player, projectile::draw_projectile},
     utils::generic::TextureDrawer,
 };
 
@@ -14,6 +14,10 @@ pub fn draw_drawable(world: &mut World, drawable: &Drawable, d: &mut TextureDraw
 
         DrawableKind::Player => {
             draw_player(world, d);
+        }
+
+        DrawableKind::Enemy => {
+            draw_enemy(world, d);
         }
     }
 }

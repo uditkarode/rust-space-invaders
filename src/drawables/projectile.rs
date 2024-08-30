@@ -11,9 +11,9 @@ pub fn projectile_canvas_size() -> Vector2 {
 
 pub fn draw_projectile(_world: &mut World, d: &mut TextureDrawer) {
     d.draw_circle(
-        PROJECTILE_RADIUS as i32, // x position (centered on the canvas)
-        PROJECTILE_RADIUS as i32, // y position (centered on the canvas)
-        PROJECTILE_RADIUS,        // radius
-        Color::ORANGE,            // color
+        PROJECTILE_RADIUS as i32, // x pos (centered on the canvas)
+        PROJECTILE_RADIUS as i32, // y pos (centered on the canvas)
+        PROJECTILE_RADIUS,
+        Color::ORANGE,
     );
 }

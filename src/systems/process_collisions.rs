@@ -1,17 +1,31 @@
 use bevy_ecs::prelude::*;
 
 use crate::{
-    components::{collision_shape::CollisionShape, position::Position, velocity::Velocity},
+    components::{
+        collision_shape::CollisionShape, identifiers::Player, position::Position,
+        velocity::Velocity,
+    },
     resources::window_size::WindowSize,
 };
 
+const COLLISION_VELOCITY_FACTOR: f32 = 0.8;
+
 pub fn process_collisions(
-    mut query: Query<(&mut Position, &mut Velocity, &CollisionShape)>,
+    mut query: Query<(
+        &mut Position,
+        &mut Velocity,
+        &CollisionShape,
+        Option<&Player>,
+    )>,
     window_size: Res<WindowSize>,
 ) {
-    for (mut position, mut velocity, collision_shape) in query.iter_mut() {
+    for (mut position, mut velocity, collision_shape, player) in query.iter_mut() {
         let on_x_collision = |velocity: &mut Velocity| {
             velocity.x = -velocity.x;
+
+            if let Some(_) = player {
+                velocity.x *= COLLISION_VELOCITY_FACTOR;
+            }
         };
 
         let on_y_collision = |velocity: &mut Velocity| {
