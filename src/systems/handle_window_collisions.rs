@@ -2,7 +2,9 @@ use bevy_ecs::prelude::*;
 
 use crate::{
     components::{
-        collision_shape::CollisionShape, identifiers::Player, position::Position,
+        collision_shape::CollisionShape,
+        identifiers::{Player, Projectile},
+        position::Position,
         velocity::Velocity,
     },
     resources::window_size::WindowSize,
@@ -10,13 +12,16 @@ use crate::{
 
 const COLLISION_VELOCITY_FACTOR: f32 = 0.8;
 
-pub fn process_window_collisions(
-    mut query: Query<(
-        &mut Position,
-        &mut Velocity,
-        &CollisionShape,
-        Option<&Player>,
-    )>,
+pub fn handle_window_collisions(
+    mut query: Query<
+        (
+            &mut Position,
+            &mut Velocity,
+            &CollisionShape,
+            Option<&Player>,
+        ),
+        Without<Projectile>,
+    >,
     window_size: Res<WindowSize>,
 ) {
     for (mut position, mut velocity, collision_shape, player) in query.iter_mut() {

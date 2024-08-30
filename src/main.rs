@@ -3,7 +3,7 @@ use components::{
     position::Position,
 };
 use draw::draw_drawable;
-use drawables::{enemy::enemy_canvas_size, player::player_canvas_size};
+use drawables::player::player_canvas_size;
 use raylib::prelude::*;
 use resources::window_size::WindowSize;
 use systems::*;
@@ -37,15 +37,18 @@ fn main() -> Result<(), anyhow::Error> {
 
     let mut schedule = Schedule::default();
 
-    schedule.add_systems(
+    schedule.add_systems((
+        spawn_enemy::spawn_enemy,
         (
             apply_velocity::apply_velocity,
-            process_collisions::process_window_collisions,
-            handle_projectile_collisions::handle_projectile_collisions,
+            (
+                handle_window_collisions::handle_window_collisions,
+                handle_projectile_collisions::handle_projectile_collisions,
+            ),
             remove_oob_entities::remove_oob_entities,
         )
             .chain(),
-    );
+    ));
 
     // spawn player
     world.spawn((
@@ -62,21 +65,6 @@ fn main() -> Result<(), anyhow::Error> {
         drawable::Drawable {
             canvas_size: player_canvas_size(),
             kind: drawable::DrawableKind::Player,
-        },
-        components::velocity::Velocity::default(),
-    ));
-
-    // spawn enemy
-    world.spawn((
-        components::identifiers::Enemy,
-        components::position::Position { x: 800.0, y: 50.0 },
-        components::collision_shape::CollisionShape::Rectangle(
-            enemy_canvas_size().x,
-            enemy_canvas_size().y,
-        ),
-        drawable::Drawable {
-            canvas_size: enemy_canvas_size(),
-            kind: drawable::DrawableKind::Enemy,
         },
         components::velocity::Velocity::default(),
     ));

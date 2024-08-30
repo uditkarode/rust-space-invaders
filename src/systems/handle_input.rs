@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::*;
-use raylib::{ffi::KeyboardKey, math::Vector2, RaylibHandle};
+use raylib::{ffi::KeyboardKey, RaylibHandle};
 
 use crate::{
     components::{

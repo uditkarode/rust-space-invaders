@@ -2,6 +2,7 @@ use raylib::{color::Color, prelude::RaylibTextureMode, RaylibHandle};
 
 pub type TextureDrawer<'a, 'b> = RaylibTextureMode<'a, &'b mut RaylibHandle>;
 
+#[allow(dead_code)]
 pub fn hex_to_color(hex: &str) -> Color {
     let hex = hex.trim_start_matches('#');
     let (r, g, b, a) = match hex.len() {
