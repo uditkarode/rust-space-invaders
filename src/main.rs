@@ -5,7 +5,10 @@ use components::{
 use draw::draw_drawable;
 use drawables::player::player_canvas_size;
 use raylib::prelude::*;
-use resources::{elapsed_time::ElapsedTime, window_size::WindowSize};
+use resources::{
+    elapsed_time::ElapsedTime, projectile_speed::ProjectileSpeed, score::Score,
+    window_size::WindowSize,
+};
 use systems::*;
 
 use bevy_ecs::prelude::*;
@@ -24,66 +27,78 @@ fn main() -> Result<(), anyhow::Error> {
         width: 1280.0,
         height: 720.0,
     };
-    world.insert_resource(window_size.clone());
 
-    world.insert_resource(ElapsedTime::default());
+    // resources
+    {
+        world.insert_resource(window_size.clone());
+        world.insert_resource(ElapsedTime::default());
+        world.insert_resource(ProjectileSpeed(5.0));
+        world.insert_resource(Score(0));
+    }
 
     let (mut rl, thread) = raylib::init()
         .size(window_size.width as i32, window_size.height as i32)
         .title("Space Invaders")
         .build();
 
-    rl.set_target_fps(120);
-    rl.set_exit_key(Some(KeyboardKey::KEY_ESCAPE));
-    rl.set_trace_log(TraceLogLevel::LOG_NONE);
+    // raylib confs
+    {
+        rl.set_target_fps(120);
+        rl.set_exit_key(Some(KeyboardKey::KEY_ESCAPE));
+        rl.set_trace_log(TraceLogLevel::LOG_NONE);
+    }
 
     let mut schedule = Schedule::default();
 
-    schedule.add_systems((
-        (spawn_enemy::spawn_enemy, enemy_fire::enemy_fire),
-        (
-            apply_velocity::apply_velocity,
+    // systems
+    {
+        schedule.add_systems((
+            (spawn_enemy::spawn_enemy, enemy_fire::enemy_fire),
             (
-                handle_window_collisions::handle_window_collisions,
-                handle_projectile_collisions::handle_projectile_collisions,
-            ),
-            remove_oob_entities::remove_oob_entities,
-        )
-            .chain(),
-    ));
+                apply_velocity::apply_velocity,
+                (
+                    handle_window_collisions::handle_window_collisions,
+                    handle_projectile_collisions::handle_projectile_collisions,
+                ),
+                remove_oob_entities::remove_oob_entities,
+            )
+                .chain(),
+        ));
+    }
 
-    // spawn player
-    world.spawn((
-        components::identifiers::Player,
-        components::position::Position {
-            // x: window_size.width / 4.0,
-            x: 400.0,
-            y: 640.0,
-        },
-        components::collision_shape::CollisionShape::Rectangle(
-            player_canvas_size().x,
-            player_canvas_size().y,
-        ),
-        drawable::Drawable {
-            canvas_size: player_canvas_size(),
-            kind: drawable::DrawableKind::Player,
-        },
-        components::velocity::Velocity::default(),
-    ));
+    // spawns
+    {
+        world.spawn((
+            components::identifiers::Player,
+            components::position::Position { x: 400.0, y: 640.0 },
+            components::collision_shape::CollisionShape::Rectangle(
+                player_canvas_size().x,
+                player_canvas_size().y,
+            ),
+            drawable::Drawable {
+                canvas_size: player_canvas_size(),
+                kind: drawable::DrawableKind::Player,
+            },
+            components::velocity::Velocity::default(),
+        ));
+    }
 
     while !rl.window_should_close() {
-        handle_input::handle_input(&mut world, &window_size, &rl);
-        track_time::track_time(&mut world, &rl);
+        // RaylibHandler-needing logic
+        {
+            handle_input::handle_input(&mut world, &window_size, &rl);
+            track_time::track_time(&mut world, &rl);
+        }
 
         schedule.run(&mut world);
 
-        let mut textures = Vec::new();
+        // get all drawables
         let mut drawables = Vec::new();
-
         for (drawable, position) in world.query::<(&Drawable, &Position)>().iter(&world) {
             drawables.push((drawable.clone(), position.clone()));
         }
 
+        let mut textures = Vec::new();
         for (drawable, position) in drawables {
             let mut render_texture = rl
                 .load_render_texture(
@@ -102,10 +117,13 @@ fn main() -> Result<(), anyhow::Error> {
             textures.push((render_texture, position));
         }
 
+        // draw all textures
         let mut d = rl.begin_drawing(&thread);
         for (_, (texture, pos)) in textures.iter().enumerate() {
             d.draw_texture(texture.texture(), pos.x as i32, pos.y as i32, Color::WHITE);
         }
+
+        // clear at the end of frame draw
         d.clear_background(Color::BLACK);
     }
 

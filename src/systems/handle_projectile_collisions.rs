@@ -1,9 +1,13 @@
-use crate::components::{
-    collision_shape::CollisionShape,
-    identifiers::{Enemy, EnemyProjectile, Player, Projectile},
-    position::Position,
-};
 use crate::resources::elapsed_time::ElapsedTime;
+use crate::resources::score::Score;
+use crate::{
+    components::{
+        collision_shape::CollisionShape,
+        identifiers::{Enemy, EnemyProjectile, Player, Projectile},
+        position::Position,
+    },
+    resources::projectile_speed::ProjectileSpeed,
+};
 use bevy_ecs::prelude::*;
 
 pub fn handle_projectile_collisions(
@@ -13,6 +17,8 @@ pub fn handle_projectile_collisions(
     player_query: Query<(Entity, &Position, &CollisionShape), With<Player>>,
     enemy_projectile_query: Query<(Entity, &Position, &CollisionShape), With<EnemyProjectile>>,
     elapsed_time: Res<ElapsedTime>,
+    mut enemy_projectile_speed: ResMut<ProjectileSpeed>,
+    mut score: ResMut<Score>,
 ) {
     // Handle player projectiles hitting enemies
     for (projectile_entity, projectile_pos, projectile_shape) in projectile_query.iter() {
@@ -21,6 +27,12 @@ pub fn handle_projectile_collisions(
                 // Destroy both the projectile and the enemy
                 commands.entity(projectile_entity).despawn();
                 commands.entity(enemy_entity).despawn();
+
+                // Increase the score
+                score.0 += 1;
+
+                // Increase the projectile speed
+                enemy_projectile_speed.0 += 2.0;
             }
         }
     }
@@ -31,7 +43,10 @@ pub fn handle_projectile_collisions(
             if check_collision(player_pos, player_shape, projectile_pos, projectile_shape) {
                 commands.entity(player_entity).despawn();
                 commands.entity(projectile_entity).despawn();
-                println!("Survived: {:.2} seconds", elapsed_time.0.as_secs_f32());
+                println!("\n\n ------ Game Over ------");
+                println!(" Survived: {:.2}s", elapsed_time.0.as_secs_f32());
+                println!(" Score: {}", score.0);
+                println!(" -----------------------\n");
                 std::process::exit(0);
             }
         }
