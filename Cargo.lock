@@ -845,6 +845,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "942b4a808e05215192e39f4ab80813e599068285906cc91aa64f923db842bd5a"
 
 [[package]]
+name = "space_invaders"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bevy_ecs",
+ "rand",
+ "raylib",
+]
+
+[[package]]
 name = "specs"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -937,16 +947,6 @@ dependencies = [
  "indexmap",
  "toml_datetime",
  "winnow",
-]
-
-[[package]]
-name = "toy_game_engine"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bevy_ecs",
- "rand",
- "raylib",
 ]
 
 [[package]]
