@@ -28,12 +28,12 @@ pub fn spawn_enemy(
         commands.spawn((
             Enemy,
             Position { x, y: 50.0 },
+            Velocity { x: 1.0, y: 0.0 },
             CollisionShape::Rectangle(enemy_size.x, enemy_size.y),
             Drawable {
                 canvas_size: enemy_size,
                 kind: DrawableKind::Enemy,
             },
-            Velocity::default(),
         ));
     }
 }

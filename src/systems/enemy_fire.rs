@@ -17,7 +17,7 @@ use crate::{
 };
 
 const FIRST_SHOT_DELAY: Duration = Duration::from_millis(250);
-const SHOT_INTERVAL: Duration = Duration::from_millis(500);
+const SHOT_INTERVAL: Duration = Duration::from_millis(750);
 
 pub fn enemy_fire(
     mut commands: Commands,
@@ -42,7 +42,7 @@ pub fn enemy_fire(
                         - (ENEMY_SHOOTER_WIDTH as f32 / 2.0),
                     y: enemy_pos.y + ENEMY_SHIP_HEIGHT as f32 + ENEMY_SHOOTER_HEIGHT as f32,
                 },
-                Velocity { x: 0.0, y: 8.0 },
+                Velocity { x: 0.0, y: 5.0 },
                 Drawable {
                     canvas_size: projectile_size,
                     kind: DrawableKind::EnemyProjectile,
