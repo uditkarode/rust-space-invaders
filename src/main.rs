@@ -5,7 +5,7 @@ use components::{
 use draw::draw_drawable;
 use drawables::player::player_canvas_size;
 use raylib::prelude::*;
-use resources::window_size::WindowSize;
+use resources::{elapsed_time::ElapsedTime, window_size::WindowSize};
 use systems::*;
 
 use bevy_ecs::prelude::*;
@@ -26,6 +26,8 @@ fn main() -> Result<(), anyhow::Error> {
     };
     world.insert_resource(window_size.clone());
 
+    world.insert_resource(ElapsedTime::default());
+
     let (mut rl, thread) = raylib::init()
         .size(window_size.width as i32, window_size.height as i32)
         .title("Space Invaders")
@@ -38,7 +40,7 @@ fn main() -> Result<(), anyhow::Error> {
     let mut schedule = Schedule::default();
 
     schedule.add_systems((
-        spawn_enemy::spawn_enemy,
+        (spawn_enemy::spawn_enemy, enemy_fire::enemy_fire),
         (
             apply_velocity::apply_velocity,
             (
@@ -71,6 +73,8 @@ fn main() -> Result<(), anyhow::Error> {
 
     while !rl.window_should_close() {
         handle_input::handle_input(&mut world, &window_size, &rl);
+        track_time::track_time(&mut world, &rl);
+
         schedule.run(&mut world);
 
         let mut textures = Vec::new();

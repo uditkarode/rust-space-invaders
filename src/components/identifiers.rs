@@ -8,3 +8,6 @@ pub struct Enemy;
 
 #[derive(Component)]
 pub struct Projectile;
+
+#[derive(Component)]
+pub struct EnemyProjectile;

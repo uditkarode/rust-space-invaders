@@ -3,7 +3,7 @@ use bevy_ecs::prelude::*;
 use crate::{
     components::{
         collision_shape::CollisionShape,
-        identifiers::{Player, Projectile},
+        identifiers::{EnemyProjectile, Player, Projectile},
         position::Position,
         velocity::Velocity,
     },
@@ -20,7 +20,7 @@ pub fn handle_window_collisions(
             &CollisionShape,
             Option<&Player>,
         ),
-        Without<Projectile>,
+        (Without<Projectile>, Without<EnemyProjectile>),
     >,
     window_size: Res<WindowSize>,
 ) {

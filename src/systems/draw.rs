@@ -9,7 +9,10 @@ use crate::{
 pub fn draw_drawable(world: &mut World, drawable: &Drawable, d: &mut TextureDrawer) {
     match drawable.kind {
         DrawableKind::Projectile => {
-            draw_projectile(world, d);
+            draw_projectile(world, d, false);
+        }
+        DrawableKind::EnemyProjectile => {
+            draw_projectile(world, d, true);
         }
 
         DrawableKind::Player => {

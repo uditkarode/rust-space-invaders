@@ -1,21 +1,38 @@
 use crate::components::{
     collision_shape::CollisionShape,
-    identifiers::{Enemy, Projectile},
+    identifiers::{Enemy, EnemyProjectile, Player, Projectile},
     position::Position,
 };
+use crate::resources::elapsed_time::ElapsedTime;
 use bevy_ecs::prelude::*;
 
 pub fn handle_projectile_collisions(
     mut commands: Commands,
     projectile_query: Query<(Entity, &Position, &CollisionShape), With<Projectile>>,
     enemy_query: Query<(Entity, &Position, &CollisionShape), With<Enemy>>,
+    player_query: Query<(Entity, &Position, &CollisionShape), With<Player>>,
+    enemy_projectile_query: Query<(Entity, &Position, &CollisionShape), With<EnemyProjectile>>,
+    elapsed_time: Res<ElapsedTime>,
 ) {
+    // Handle player projectiles hitting enemies
     for (projectile_entity, projectile_pos, projectile_shape) in projectile_query.iter() {
         for (enemy_entity, enemy_pos, enemy_shape) in enemy_query.iter() {
             if check_collision(projectile_pos, projectile_shape, enemy_pos, enemy_shape) {
                 // Destroy both the projectile and the enemy
                 commands.entity(projectile_entity).despawn();
                 commands.entity(enemy_entity).despawn();
+            }
+        }
+    }
+
+    // Handle enemy projectiles hitting the player
+    if let Ok((player_entity, player_pos, player_shape)) = player_query.get_single() {
+        for (projectile_entity, projectile_pos, projectile_shape) in enemy_projectile_query.iter() {
+            if check_collision(player_pos, player_shape, projectile_pos, projectile_shape) {
+                commands.entity(player_entity).despawn();
+                commands.entity(projectile_entity).despawn();
+                println!("Survived: {:.2} seconds", elapsed_time.0.as_secs_f32());
+                std::process::exit(0);
             }
         }
     }

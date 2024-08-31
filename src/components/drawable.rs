@@ -6,6 +6,7 @@ pub enum DrawableKind {
     Player,
     Enemy,
     Projectile,
+    EnemyProjectile,
 }
 
 #[derive(Component, Clone)]
