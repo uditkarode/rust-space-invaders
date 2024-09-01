@@ -9,6 +9,7 @@ use crate::{
     resources::projectile_speed::ProjectileSpeed,
 };
 use bevy_ecs::prelude::*;
+use raylib::math::Vector2;
 
 pub fn handle_projectile_collisions(
     mut commands: Commands,
@@ -61,21 +62,19 @@ fn check_collision(
 ) -> bool {
     match (shape1, shape2) {
         (CollisionShape::Rectangle(w1, h1), CollisionShape::Rectangle(w2, h2)) => {
-            pos1.x < pos2.x + w2
-                && pos1.x + w1 > pos2.x
-                && pos1.y < pos2.y + h2
-                && pos1.y + h1 > pos2.y
+            let (x1, y1) = (pos1.x, pos1.y);
+            let (x2, y2) = (pos2.x, pos2.y);
+
+            let x_overlap = x1 < (x2 + w2) && (x1 + w1 > x2);
+            let y_overlap = y1 < (y2 + h2) && (y1 + h1 > y2);
+
+            x_overlap && y_overlap
         }
         (CollisionShape::Circle(r1), CollisionShape::Circle(r2)) => {
-            let center1_x = pos1.x + r1;
-            let center1_y = pos1.y + r1;
-            let center2_x = pos2.x + r2;
-            let center2_y = pos2.y + r2;
-            let dx = center1_x - center2_x;
-            let dy = center1_y - center2_y;
-            let distance_squared = dx * dx + dy * dy;
-            let radius_sum = r1 + r2;
-            distance_squared <= radius_sum * radius_sum
+            let center1 = Vector2::new(pos1.x + r1, pos1.y + r1);
+            let center2 = Vector2::new(pos2.x + r2, pos2.y + r2);
+            let distance = center1.distance_to(center2);
+            distance <= r1 + r2
         }
         (CollisionShape::Rectangle(w, h), CollisionShape::Circle(r))
         | (CollisionShape::Circle(r), CollisionShape::Rectangle(w, h)) => {
